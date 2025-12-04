@@ -1,0 +1,43 @@
+name: lab
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # === Tambahan untuk fitur Export & Share ===
+  excel: ^4.0.6
+  path_provider: ^2.1.5
+  share_plus: ^10.0.2
+  pdf: ^3.11.0
+  printing: ^5.11.0
+  shared_preferences: ^2.2.2  # ✅ TAMBAH INI untuk persistent storage
+  intl: ^0.18.1
+
+  # 🖼️ === Tambahan untuk Fitur Foto ===
+  image_picker: ^1.1.2 # Digunakan untuk memilih gambar dari galeri atau kamera
+  path: ^1.9.0         # Digunakan untuk manipulasi path file
+  # Pastikan Anda menggunakan versi terbaru atau sesuai dengan kebutuhan Anda.
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/
