@@ -20,6 +20,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
   final HammerTestService _service = HammerTestService();
   final UnifiedReportService _reportService = UnifiedReportService();
+  late TextEditingController _ageController;
 
   
   String _testedBy = '';
@@ -43,6 +44,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
   void initState() {
     super.initState();
     _selectedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+     _ageController = TextEditingController(text: '28');
 
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -65,6 +67,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
   @override
   void dispose() {
     _fadeController.dispose();
+     _ageController.dispose();
     super.dispose();
   }
 
@@ -555,7 +558,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           
           _buildNumberField(
             label: 'Umur Beton',
-            value: _concreteAge,
+            controller: _ageController,
             icon: Icons.calendar_today_rounded,
             unit: 'hari',
             hint: 'Minimal 3 hari',
@@ -667,85 +670,88 @@ class _HammerTestScreenState extends State<HammerTestScreen>
     );
   }
 
-  Widget _buildNumberField({
-    required String label,
-    required int value,
-    required IconData icon,
-    required String unit,
-    String? hint,
-    required Function(int) onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF334155),
-              letterSpacing: -0.2,
-            )),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-                ),
-                child: TextField(
-                  controller: TextEditingController(text: value.toString())
-                    ..selection = TextSelection.fromPosition(
-                      TextPosition(offset: value.toString().length),
-                    ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (val) {
-                    final parsed = int.tryParse(val) ?? value;
-                    onChanged(parsed);
-                  },
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF0F172A),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintStyle: const TextStyle(
-                      color: Color(0xFFCBD5E1),
-                      fontSize: 13,
-                    ),
-                    prefixIcon:
-                        Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 14),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+ Widget _buildNumberField({
+  required String label,
+  required TextEditingController controller, // ✅ GANTI DARI int value
+  required IconData icon,
+  required String unit,
+  String? hint,
+  required Function(int) onChanged,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF334155),
+            letterSpacing: -0.2,
+          )),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Expanded(
+            child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border:
+                    Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
               ),
-              child: Text(unit,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w600,
-                  )),
+              child: TextField(
+                controller: controller, // ✅ GUNAKAN CONTROLLER
+                keyboardType: TextInputType.number,
+                onChanged: (val) {
+                  if (val.isEmpty) {
+                    onChanged(3); // minimal 3 hari
+                    return;
+                  }
+                  final parsed = int.tryParse(val);
+                  if (parsed != null) {
+                    onChanged(parsed);
+                  }
+                },
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF0F172A),
+                  fontWeight: FontWeight.w500,
+                ),
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: const TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 13,
+                  ),
+                  prefixIcon:
+                      Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 14),
+                ),
+              ),
             ),
-          ],
-        ),
-      ],
-    );
-  }
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            ),
+            child: Text(unit,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.w600,
+                )),
+          ),
+        ],
+      ),
+    ],
+  );
+}
  
 
   Widget _buildCalibrationSection() {
@@ -2311,6 +2317,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
                 _testedBy = '';
                 _location = '';
                 _concreteAge = 28;
+                _ageController.text = '28';
                 _calibrationFactor = 1.0;
               });
               Navigator.pop(context);
