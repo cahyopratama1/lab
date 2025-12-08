@@ -1,19 +1,19 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/hammer_test_result.dart';
 import '../models/sand_cone_test_result.dart';
 import '../models/uji_kuat_result.dart';
 import '../models/konversi_result.dart';
 import 'auth_service.dart';
+import 'database_helper.dart';
 
 class UnifiedReport {
   final String id;
-  final String type; 
+  final String type;
   final DateTime date;
   final String title;
   final String summary;
   final Map<String, dynamic> data;
-  final String username; 
+  final String username;
   
   UnifiedReport({
     required this.id,
@@ -22,39 +22,44 @@ class UnifiedReport {
     required this.title,
     required this.summary,
     required this.data,
-    required this.username, 
+    required this.username,
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'username': username,
       'type': type,
       'date': date.toIso8601String(),
       'title': title,
       'summary': summary,
-      'data': data,
-      'username': username, 
+      'data': jsonEncode(data),
+      'createdAt': DateTime.now().toIso8601String(),
     };
   }
 
-  factory UnifiedReport.fromJson(Map<String, dynamic> json) {
+  factory UnifiedReport.fromMap(Map<String, dynamic> map) {
     return UnifiedReport(
-      id: json['id'],
-      type: json['type'],
-      date: DateTime.parse(json['date']),
-      title: json['title'],
-      summary: json['summary'],
-      data: Map<String, dynamic>.from(json['data']),
-      username: json['username'] ?? '', 
+      id: map['id'],
+      username: map['username'],
+      type: map['type'],
+      date: DateTime.parse(map['date']),
+      title: map['title'],
+      summary: map['summary'],
+      data: jsonDecode(map['data']),
     );
   }
+
+ 
+  Map<String, dynamic> toJson() => toMap();
+  factory UnifiedReport.fromJson(Map<String, dynamic> json) => UnifiedReport.fromMap(json);
 }
 
 class UnifiedReportService {
-  static const String _storageKey = 'unified_reports';
   final AuthService _authService = AuthService();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
-  
+ 
   Future<String> _getCurrentUsername() async {
     final username = await _authService.getCurrentUsername();
     return username ?? 'guest';
@@ -71,10 +76,10 @@ class UnifiedReportService {
       title: 'Konversi Umur Beton - ${result.umurBeton.toStringAsFixed(0)} Hari (${result.jenisBendaUjiDisplay})',
       summary: 'Kuat Tekan 28 Hari: ${result.hasilKonversi.toStringAsFixed(2)} ${result.satuanDisplay} • ${result.jenisBendaUjiDisplay} • Faktor: ${result.faktorKonversi.toStringAsFixed(3)} • ${result.karakteristik}',
       data: result.toJson(),
-      username: username, 
+      username: username,
     );
     
-    await _saveReport(report);
+    await _dbHelper.insertReport(report.toMap());
   }
   
   
@@ -99,10 +104,10 @@ class UnifiedReportService {
       title: 'Sand Cone Test',
       summary: 'Berat Isi Kering: ${result.beratIsiTanahKering.toStringAsFixed(3)} g/cm³ • Kepadatan: ${result.persentaseKepadatan.toStringAsFixed(1)}% • $klasifikasi$photoInfo',
       data: result.toJson(),
-      username: username, 
+      username: username,
     );
     
-    await _saveReport(report);
+    await _dbHelper.insertReport(report.toMap());
   }
   
   
@@ -118,11 +123,12 @@ class UnifiedReportService {
       title: 'Hammer Test - ${result.location}',
       summary: 'Kuat Tekan: ${result.estimatedCompressiveStrength.toStringAsFixed(2)} MPa • ${result.qualityStatus}$photoInfo',
       data: result.toMap(),
-      username: username, 
+      username: username,
     );
     
-    await _saveReport(report);
+    await _dbHelper.insertReport(report.toMap());
   }
+  
   
   Future<void> saveUjiKuatReport(UjiKuatResult result, UjiKuatData data) async {
     final username = await _getCurrentUsername();
@@ -155,57 +161,26 @@ class UnifiedReportService {
       username: username,
     );
     
-    await _saveReport(report);
-  }
-  
-  
-  Future<void> _saveReport(UnifiedReport report) async {
-    final prefs = await SharedPreferences.getInstance();
-    final allReports = await _getAllReportsRaw(); 
-    allReports.insert(0, report);
-    
-    
-    if (allReports.length > 500) {
-      allReports.removeRange(500, allReports.length);
-    }
-    
-    final jsonList = allReports.map((r) => r.toJson()).toList();
-    await prefs.setString(_storageKey, jsonEncode(jsonList));
-  }
-  
-  
-  Future<List<UnifiedReport>> _getAllReportsRaw() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_storageKey);
-      
-      if (jsonString == null || jsonString.isEmpty) {
-        return [];
-      }
-      
-      final List<dynamic> jsonList = jsonDecode(jsonString);
-      return jsonList.map((json) => UnifiedReport.fromJson(json)).toList();
-    } catch (e) {
-      return [];
-    }
+    await _dbHelper.insertReport(report.toMap());
   }
   
   
   Future<List<UnifiedReport>> getAllReports() async {
     final username = await _getCurrentUsername();
-    final allReports = await _getAllReportsRaw();
+    final results = await _dbHelper.getReportsByUsername(username);
     
-   
-    return allReports.where((r) => r.username == username).toList();
+    return results.map((map) => UnifiedReport.fromMap(map)).toList();
   }
   
   
   Future<List<UnifiedReport>> getReportsByType(String type) async {
-    final allReports = await getAllReports();
-    return allReports.where((r) => r.type == type).toList();
+    final username = await _getCurrentUsername();
+    final results = await _dbHelper.getReportsByUsernameAndType(username, type);
+    
+    return results.map((map) => UnifiedReport.fromMap(map)).toList();
   }
   
- 
+  
   Future<List<UnifiedReport>> getReportsByDateRange(DateTime start, DateTime end) async {
     final allReports = await getAllReports();
     return allReports.where((r) {
@@ -216,43 +191,31 @@ class UnifiedReportService {
   
   
   Future<void> deleteReport(String id) async {
-    final prefs = await SharedPreferences.getInstance();
     final username = await _getCurrentUsername();
-    final allReports = await _getAllReportsRaw();
-    
-   
-    allReports.removeWhere((r) => r.id == id && r.username == username);
-    
-    final jsonList = allReports.map((r) => r.toJson()).toList();
-    await prefs.setString(_storageKey, jsonEncode(jsonList));
+    await _dbHelper.deleteReport(id, username);
   }
   
-  
+ 
   Future<void> clearAllReports() async {
-    final prefs = await SharedPreferences.getInstance();
     final username = await _getCurrentUsername();
-    final allReports = await _getAllReportsRaw();
-    
-    
-    allReports.removeWhere((r) => r.username == username);
-    
-    final jsonList = allReports.map((r) => r.toJson()).toList();
-    await prefs.setString(_storageKey, jsonEncode(jsonList));
+    await _dbHelper.deleteAllReportsByUsername(username);
   }
   
   
   Future<Map<String, int>> getReportStatistics() async {
-    final reports = await getAllReports();
-    return {
-      'total': reports.length,
-      'sand_cone': reports.where((r) => r.type == 'sand_cone').length,
-      'hammer_test': reports.where((r) => r.type == 'hammer_test').length,
-      'uji_kuat': reports.where((r) => r.type == 'uji_kuat').length,
-      'konversi_beton': reports.where((r) => r.type == 'konversi_beton').length,
-    };
+    final username = await _getCurrentUsername();
+    return await _dbHelper.getReportStatisticsByUsername(username);
   }
   
- 
+  
+  Future<List<UnifiedReport>> searchReports(String keyword) async {
+    final username = await _getCurrentUsername();
+    final results = await _dbHelper.searchReports(username, keyword);
+    
+    return results.map((map) => UnifiedReport.fromMap(map)).toList();
+  }
+  
+  
   KonversiResult getKonversiBetonResult(UnifiedReport report) {
     if (report.type != 'konversi_beton') {
       throw Exception('Report is not a Konversi Beton');
