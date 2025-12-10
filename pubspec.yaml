@@ -12,21 +12,22 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
 
-  # === Tambahan untuk fitur Export & Share ===
+  
   excel: ^4.0.6
   path_provider: ^2.1.5
   share_plus: ^10.0.2
   pdf: ^3.11.0
   printing: ^5.11.0
-  shared_preferences: ^2.2.2  # ✅ Untuk session login
+  shared_preferences: ^2.2.2  
   intl: ^0.18.1
 
-  # 🖼️ === Tambahan untuk Fitur Foto ===
+ 
   image_picker: ^1.1.2
   path: ^1.9.0
   
-  # 🗄️ === BARU: Untuk Database SQLite ===
-  sqflite: ^2.3.0      # ✅ TAMBAH INI untuk database
+ 
+  sqflite: ^2.3.0     
+  crypto: ^3.0.3       
   
 
 dev_dependencies:
