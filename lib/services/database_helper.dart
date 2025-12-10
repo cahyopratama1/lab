@@ -1,5 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -24,8 +26,15 @@ class DatabaseHelper {
     );
   }
 
+  
+  String _hashPassword(String password) {
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   Future<void> _createDB(Database db, int version) async {
-    
+  
     await db.execute('''
       CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +46,7 @@ class DatabaseHelper {
       )
     ''');
 
-    
+  
     await db.execute('''
       CREATE TABLE reports (
         id TEXT PRIMARY KEY,
@@ -52,10 +61,10 @@ class DatabaseHelper {
       )
     ''');
 
-    
+   
     await db.insert('users', {
       'username': 'BM',
-      'password': '2425',
+      'password': _hashPassword('2425'),
       'fullName': 'Bina Marga',
       'role': 'user',
       'createdAt': DateTime.now().toIso8601String(),
@@ -63,7 +72,7 @@ class DatabaseHelper {
 
     await db.insert('users', {
       'username': 'Lab',
-      'password': '1225',
+      'password': _hashPassword('1225'),
       'fullName': 'Laboratorium',
       'role': 'user',
       'createdAt': DateTime.now().toIso8601String(),
@@ -71,16 +80,15 @@ class DatabaseHelper {
 
     await db.insert('users', {
       'username': 'DPU',
-      'password': '3009',
+      'password': _hashPassword('3009'),
       'fullName': 'Dinas Pekerjaan Umum',
       'role': 'user',
       'createdAt': DateTime.now().toIso8601String(),
     });
   }
 
-  
+ 
 
-  
   Future<Map<String, dynamic>?> loginUser(String username, String password) async {
     final db = await database;
     
@@ -96,7 +104,6 @@ class DatabaseHelper {
     return null;
   }
 
-  
   Future<Map<String, dynamic>?> getUserByUsername(String username) async {
     final db = await database;
     
@@ -112,13 +119,11 @@ class DatabaseHelper {
     return null;
   }
 
-  
   Future<List<Map<String, dynamic>>> getAllUsers() async {
     final db = await database;
     return await db.query('users', orderBy: 'username ASC');
   }
 
-  
   Future<int> addUser({
     required String username,
     required String password,
@@ -129,14 +134,13 @@ class DatabaseHelper {
     
     return await db.insert('users', {
       'username': username,
-      'password': password,
+      'password': password, 
       'fullName': fullName,
       'role': role,
       'createdAt': DateTime.now().toIso8601String(),
     });
   }
 
-  
   Future<int> updateUser({
     required String username,
     String? password,
@@ -158,10 +162,8 @@ class DatabaseHelper {
     );
   }
 
-  
   Future<int> deleteUser(String username) async {
     final db = await database;
-    
     
     await db.delete('reports', where: 'username = ?', whereArgs: [username]);
     
@@ -174,13 +176,11 @@ class DatabaseHelper {
 
   
 
-  
   Future<int> insertReport(Map<String, dynamic> report) async {
     final db = await database;
     return await db.insert('reports', report);
   }
 
-  
   Future<List<Map<String, dynamic>>> getReportsByUsername(String username) async {
     final db = await database;
     return await db.query(
@@ -191,7 +191,6 @@ class DatabaseHelper {
     );
   }
 
-  
   Future<List<Map<String, dynamic>>> getReportsByUsernameAndType(
     String username,
     String type,
@@ -205,7 +204,6 @@ class DatabaseHelper {
     );
   }
 
-  
   Future<Map<String, dynamic>?> getReportById(String id) async {
     final db = await database;
     final results = await db.query(
@@ -220,7 +218,6 @@ class DatabaseHelper {
     return null;
   }
 
-  
   Future<int> deleteReport(String id, String username) async {
     final db = await database;
     return await db.delete(
@@ -230,7 +227,6 @@ class DatabaseHelper {
     );
   }
 
-  
   Future<int> deleteAllReportsByUsername(String username) async {
     final db = await database;
     return await db.delete(
@@ -240,7 +236,6 @@ class DatabaseHelper {
     );
   }
 
-  
   Future<Map<String, int>> getReportStatisticsByUsername(String username) async {
     final db = await database;
     
@@ -259,7 +254,6 @@ class DatabaseHelper {
     };
   }
 
-  
   Future<List<Map<String, dynamic>>> searchReports(
     String username,
     String keyword,
@@ -273,23 +267,20 @@ class DatabaseHelper {
     );
   }
 
-  
+ 
 
-  
   Future<int> getDatabaseSize() async {
     final db = await database;
     final result = await db.rawQuery('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()');
     return result.first['size'] as int;
   }
 
-  
   Future<void> clearAllData() async {
     final db = await database;
     await db.delete('reports');
     await db.delete('users');
   }
 
-  
   Future<void> close() async {
     final db = await database;
     await db.close();
