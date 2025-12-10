@@ -1,4 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 import 'database_helper.dart';
 
 class AuthService {
@@ -10,10 +12,18 @@ class AuthService {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   
+  String _hashPassword(String password) {
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
+    
+      String hashedPassword = _hashPassword(password);
       
-      final user = await _dbHelper.loginUser(username, password);
+      final user = await _dbHelper.loginUser(username, hashedPassword);
 
       if (user == null) {
         return {
@@ -22,7 +32,6 @@ class AuthService {
         };
       }
 
-      
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyIsLoggedIn, true);
       await prefs.setString(_keyUsername, user['username']);
@@ -42,23 +51,19 @@ class AuthService {
     }
   }
 
-  
+ 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-
-    await prefs.remove(_keyIsLoggedIn);
-    await prefs.remove(_keyUsername);
-    await prefs.remove(_keyFullName);
-    await prefs.remove(_keyRole);
+    await prefs.clear(); 
   }
 
-  
+ 
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyIsLoggedIn) ?? false;
   }
 
-  
+ 
   Future<Map<String, String?>> getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     return {
@@ -68,15 +73,13 @@ class AuthService {
     };
   }
   
-  
+ 
   Future<String?> getCurrentUsername() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyUsername);
   }
 
-  
 
- 
   Future<Map<String, dynamic>> registerUser({
     required String username,
     required String password,
@@ -93,10 +96,13 @@ class AuthService {
         };
       }
 
-      
+    
+      String hashedPassword = _hashPassword(password);
+
+     
       await _dbHelper.addUser(
         username: username,
-        password: password,
+        password: hashedPassword,
         fullName: fullName,
         role: role,
       );
@@ -120,8 +126,10 @@ class AuthService {
     required String newPassword,
   }) async {
     try {
+     
+      String hashedOldPassword = _hashPassword(oldPassword);
+      final user = await _dbHelper.loginUser(username, hashedOldPassword);
       
-      final user = await _dbHelper.loginUser(username, oldPassword);
       if (user == null) {
         return {
           'success': false,
@@ -130,7 +138,8 @@ class AuthService {
       }
 
       
-      await _dbHelper.updateUser(username: username, password: newPassword);
+      String hashedNewPassword = _hashPassword(newPassword);
+      await _dbHelper.updateUser(username: username, password: hashedNewPassword);
 
       return {
         'success': true,
@@ -144,12 +153,12 @@ class AuthService {
     }
   }
 
- 
+
   Future<List<Map<String, dynamic>>> getAllUsers() async {
     return await _dbHelper.getAllUsers();
   }
 
-  
+
   Future<Map<String, dynamic>> deleteUser(String username) async {
     try {
       await _dbHelper.deleteUser(username);
