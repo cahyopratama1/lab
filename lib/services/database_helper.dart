@@ -54,25 +54,25 @@ class DatabaseHelper {
 
     
     await db.insert('users', {
-      'username': 'Bina Marga Kotim',
-      'password': 'binamarga2425',
-      'fullName': 'Bina Marga Kotim',
+      'username': 'BM',
+      'password': '2425',
+      'fullName': 'Bina Marga',
       'role': 'user',
       'createdAt': DateTime.now().toIso8601String(),
     });
 
     await db.insert('users', {
-      'username': 'Lab Teknik',
-      'password': 'Lab1225',
-      'fullName': 'Lab Teknik',
+      'username': 'Lab',
+      'password': '1225',
+      'fullName': 'Laboratorium',
       'role': 'user',
       'createdAt': DateTime.now().toIso8601String(),
     });
 
     await db.insert('users', {
-      'username': 'Dinas PU Kotim',
-      'password': 'dsdabmbkprpk25',
-      'fullName': 'Dinas PU Kotim',
+      'username': 'DPU',
+      'password': '3009',
+      'fullName': 'Dinas Pekerjaan Umum',
       'role': 'user',
       'createdAt': DateTime.now().toIso8601String(),
     });
