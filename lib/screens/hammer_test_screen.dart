@@ -13,16 +13,12 @@ class HammerTestScreen extends StatefulWidget {
   State<HammerTestScreen> createState() => _HammerTestScreenState();
 }
 
-class _HammerTestScreenState extends State<HammerTestScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-
+class _HammerTestScreenState extends State<HammerTestScreen> {
   final HammerTestService _service = HammerTestService();
   final UnifiedReportService _reportService = UnifiedReportService();
   late TextEditingController _ageController;
 
-  
+
   String _testedBy = '';
   String _selectedStandard = 'SNI';
   String _selectedHammerType = 'N-Type';
@@ -31,7 +27,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
   String _location = '';
   double _calibrationFactor = 1.0;
 
-  
   final List<int> _reboundValues = [];
   List<String> _photoPaths = [];
   HammerTestResult? _currentResult;
@@ -44,30 +39,23 @@ class _HammerTestScreenState extends State<HammerTestScreen>
   void initState() {
     super.initState();
     _selectedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
-     _ageController = TextEditingController(text: '28');
-
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
-    );
-    _fadeController.forward();
-
+    _ageController = TextEditingController(text: '28');
+    
+    
     _loadData();
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     await _service.loadHistory();
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
-     _ageController.dispose();
+    _ageController.dispose();
     super.dispose();
   }
 
@@ -82,39 +70,33 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             sliver: SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    if (_hasCalculated) _buildSuccessBanner(),
-                    if (_hasCalculated) const SizedBox(height: 12),
-                    _buildProjectInfoCard(),
-                    const SizedBox(height: 12),
-                    _buildConfigurationCard(),
-                    const SizedBox(height: 12),
-                    _buildDataInputCard(),
-                    const SizedBox(height: 12),
-                    
-                   
-                    PhotoCaptureWidget(
-                      initialPhotos: _photoPaths,
-                      onPhotosChanged: (photos) {
-                        setState(() {
-                          _photoPaths = photos;
-                        });
-                      },
-                      maxPhotos: 5,
-                      title: 'Foto Dokumentasi Hammer Test',
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    if (_showResults && _currentResult != null)
-                      _buildResultsCard(_currentResult!),
-                    
-                    const SizedBox(height: 80),
-                  ],
-                ),
+          
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  if (_hasCalculated) _buildSuccessBanner(),
+                  if (_hasCalculated) const SizedBox(height: 12),
+                  _buildProjectInfoCard(),
+                  const SizedBox(height: 12),
+                  _buildConfigurationCard(),
+                  const SizedBox(height: 12),
+                  _buildDataInputCard(),
+                  const SizedBox(height: 12),
+                  PhotoCaptureWidget(
+                    initialPhotos: _photoPaths,
+                    onPhotosChanged: (photos) {
+                      setState(() {
+                        _photoPaths = photos;
+                      });
+                    },
+                    maxPhotos: 5,
+                    title: 'Foto Dokumentasi Hammer Test',
+                  ),
+                  const SizedBox(height: 12),
+                  if (_showResults && _currentResult != null)
+                    _buildResultsCard(_currentResult!),
+                  const SizedBox(height: 80),
+                ],
               ),
             ),
           ),
@@ -123,7 +105,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
       bottomNavigationBar: _buildBottomActionBar(),
     );
   }
-
   Widget _buildAppBar() {
     return SliverAppBar(
       expandedHeight: 120,
@@ -276,7 +257,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
       ),
     );
   }
- 
+
   Widget _buildProjectInfoCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -455,7 +436,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
       ],
     );
   }
-
   Widget _buildConfigurationCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -513,7 +493,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
 
-          
           _buildDropdownField(
             label: 'Standar',
             value: _selectedStandard,
@@ -527,7 +506,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           
           const SizedBox(height: 14),
 
-          
           _buildDropdownField(
             label: 'Tipe Hammer',
             value: _selectedHammerType,
@@ -540,7 +518,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 14),
 
-         
           _buildDropdownField(
             label: 'Posisi Pengujian',
             value: _selectedPosition,
@@ -555,7 +532,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 14),
 
-          
           _buildNumberField(
             label: 'Umur Beton',
             controller: _ageController,
@@ -567,12 +543,10 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 14),
 
-          
           _buildCalibrationSection(),
 
           const SizedBox(height: 14),
 
-          
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -670,89 +644,88 @@ class _HammerTestScreenState extends State<HammerTestScreen>
     );
   }
 
- Widget _buildNumberField({
-  required String label,
-  required TextEditingController controller, // ✅ GANTI DARI int value
-  required IconData icon,
-  required String unit,
-  String? hint,
-  required Function(int) onChanged,
-}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF334155),
-            letterSpacing: -0.2,
-          )),
-      const SizedBox(height: 8),
-      Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border:
-                    Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-              ),
-              child: TextField(
-                controller: controller, // ✅ GUNAKAN CONTROLLER
-                keyboardType: TextInputType.number,
-                onChanged: (val) {
-                  if (val.isEmpty) {
-                    onChanged(3); // minimal 3 hari
-                    return;
-                  }
-                  final parsed = int.tryParse(val);
-                  if (parsed != null) {
-                    onChanged(parsed);
-                  }
-                },
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF0F172A),
-                  fontWeight: FontWeight.w500,
+  Widget _buildNumberField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    required String unit,
+    String? hint,
+    required Function(int) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF334155),
+              letterSpacing: -0.2,
+            )),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
                 ),
-                decoration: InputDecoration(
-                  hintText: hint,
-                  hintStyle: const TextStyle(
-                    color: Color(0xFFCBD5E1),
-                    fontSize: 13,
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  onChanged: (val) {
+                    if (val.isEmpty) {
+                      onChanged(3);
+                      return;
+                    }
+                    final parsed = int.tryParse(val);
+                    if (parsed != null) {
+                      onChanged(parsed);
+                    }
+                  },
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF0F172A),
+                    fontWeight: FontWeight.w500,
                   ),
-                  prefixIcon:
-                      Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 14),
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    hintStyle: const TextStyle(
+                      color: Color(0xFFCBD5E1),
+                      fontSize: 13,
+                    ),
+                    prefixIcon:
+                        Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 14),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+              ),
+              child: Text(unit,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w600,
+                  )),
             ),
-            child: Text(unit,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.w600,
-                )),
-          ),
-        ],
-      ),
-    ],
-  );
-}
- 
+          ],
+        ),
+      ],
+    );
+  }
 
   Widget _buildCalibrationSection() {
     return Container(
@@ -797,7 +770,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           ),
           const SizedBox(height: 12),
           
-         
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -859,7 +831,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           
           const SizedBox(height: 12),
           
-         
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -870,7 +841,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           ),
           
           const SizedBox(height: 12),
-          
           
           Container(
             padding: const EdgeInsets.all(8),
@@ -927,157 +897,10 @@ class _HammerTestScreenState extends State<HammerTestScreen>
       ),
     );
   }
-
-  void _showCustomCalibrationDialog() {
-    final controller = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.all(20),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF3B82F6).withOpacity(0.2),
-                    const Color(0xFF3B82F6).withOpacity(0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.tune_rounded,
-                  color: Color(0xFF3B82F6), size: 22),
-            ),
-            const SizedBox(width: 12),
-            const Flexible(
-              child: Text('Kalibrasi Custom',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  )),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Masukkan faktor kalibrasi dari sertifikat alat:',
-              style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-              ),
-              child: TextField(
-                controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,8}')),
-                ],
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF0F172A),
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Contoh: 1.00125156',
-                  hintStyle: TextStyle(color: Color(0xFFCBD5E1), fontSize: 13),
-                  prefixIcon: Icon(Icons.calculate_rounded, 
-                      color: Color(0xFF94A3B8), size: 20),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 14,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Contoh Perhitungan:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[900],
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Nilai standar = 80\n'
-                    'Nilai alat = 79.9\n'
-                    'Faktor = 80 ÷ 79.9 = 1.00125156',
-                    style: TextStyle(
-                      color: Colors.blue[800],
-                      fontSize: 11,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal',
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final value = double.tryParse(controller.text);
-              if (value != null && value > 0 && value <= 2.0) {
-                setState(() => _calibrationFactor = value);
-                Navigator.pop(ctx);
-                _showSuccessSnackBar(
-                  'Kalibrasi diterapkan: ${value.toStringAsFixed(8)}'
-                );
-              } else {
-                _showErrorSnackBar('Nilai tidak valid (0 < x ≤ 2.0)');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              elevation: 0,
-            ),
-            child: const Text('Terapkan',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                )),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDataInputCard() {
     final hasMinimumReadings = _reboundValues.length >= 10;
+    
+   
     final avgValue = _reboundValues.isEmpty
         ? 0.0
         : _reboundValues.reduce((a, b) => a + b) / _reboundValues.length;
@@ -1147,12 +970,10 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
 
-         
           _buildReboundInputField(),
 
           const SizedBox(height: 16),
 
-          
           Row(
             children: [
               Expanded(
@@ -1202,7 +1023,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           if (!hasMinimumReadings) ...[
             const SizedBox(height: 8),
             Text(
-              'Pembacaan diperlukan untuk analisis',
+              'Minimal 10 pembacaan diperlukan untuk analisis',
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.orange[700],
@@ -1238,12 +1059,16 @@ class _HammerTestScreenState extends State<HammerTestScreen>
                       Icons.analytics_rounded, const Color(0xFF10B981)),
                   _buildStatItem(
                       'Min',
-                      _reboundValues.reduce((a, b) => a < b ? a : b).toString(),
+                      _reboundValues.length == 1
+                          ? _reboundValues[0].toString()
+                          : _reboundValues.reduce((a, b) => a < b ? a : b).toString(),
                       Icons.arrow_downward_rounded,
                       const Color(0xFFF59E0B)),
                   _buildStatItem(
                       'Max',
-                      _reboundValues.reduce((a, b) => a > b ? a : b).toString(),
+                      _reboundValues.length == 1
+                          ? _reboundValues[0].toString()
+                          : _reboundValues.reduce((a, b) => a > b ? a : b).toString(),
                       Icons.arrow_upward_rounded,
                       const Color(0xFFEF4444)),
                 ],
@@ -1251,12 +1076,11 @@ class _HammerTestScreenState extends State<HammerTestScreen>
             ),
           ],
 
-         
           if (_reboundValues.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Daftar Pembacaan:',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF334155),
@@ -1273,9 +1097,9 @@ class _HammerTestScreenState extends State<HammerTestScreen>
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
+                      gradient: const LinearGradient(
                         colors: [
-                          const Color(0xFFF8FAFC),
+                          Color(0xFFF8FAFC),
                           Colors.white,
                         ],
                       ),
@@ -1551,8 +1375,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
       ],
     );
   }
-
-
   Widget _buildResultsCard(HammerTestResult result) {
     final recommendation = _service.getRecommendation(result);
 
@@ -1612,7 +1434,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
 
-        
           Container(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             decoration: BoxDecoration(
@@ -1644,7 +1465,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 14),
 
-         
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1694,7 +1514,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 14),
 
-         
           if (result.calibrationFactor != 1.0) ...[
             Container(
               padding: const EdgeInsets.all(12),
@@ -1740,7 +1559,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
             const SizedBox(height: 14),
           ],
 
-         
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -1862,7 +1680,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 16),
 
-         
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1915,7 +1732,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 14),
 
-         
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1956,7 +1772,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
 
           const SizedBox(height: 14),
 
-         
           Row(
             children: [
               Expanded(
@@ -2090,10 +1905,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
       ),
     );
   }
-
-
   void _calculateResults() async {
-   
     final configValidation = _service.validateTestConfiguration(
       standard: _selectedStandard,
       hammerType: _selectedHammerType,
@@ -2124,7 +1936,6 @@ class _HammerTestScreenState extends State<HammerTestScreen>
     setState(() => _isLoading = true);
 
     try {
-    
       final result = HammerTestResult(
         testId: 'HT-${DateTime.now().millisecondsSinceEpoch}',
         testDate: DateTime.now(),
@@ -2139,20 +1950,18 @@ class _HammerTestScreenState extends State<HammerTestScreen>
         photoPaths: List.from(_photoPaths),
       );
 
-    
       final saved = await _service.saveTestResult(result);
 
       if (saved) {
-      
         await _reportService.saveHammerTestReport(result);
 
-        setState(() {
-          _currentResult = result;
-          _showResults = true;
-          _hasCalculated = true;
-        });
-
         if (mounted) {
+          setState(() {
+            _currentResult = result;
+            _showResults = true;
+            _hasCalculated = true;
+          });
+
           _showSuccessSnackBar(
             'Hasil berhasil disimpan!\n'
             'Kuat Tekan: ${result.compressiveStrengthMPa.toStringAsFixed(2)} MPa'
@@ -2167,8 +1976,158 @@ class _HammerTestScreenState extends State<HammerTestScreen>
         _showErrorSnackBar('Terjadi kesalahan: $e');
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
+  }
+
+  void _showCustomCalibrationDialog() {
+    final controller = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.all(20),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF3B82F6).withOpacity(0.2),
+                    const Color(0xFF3B82F6).withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.tune_rounded,
+                  color: Color(0xFF3B82F6), size: 22),
+            ),
+            const SizedBox(width: 12),
+            const Flexible(
+              child: Text('Kalibrasi Custom',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  )),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Masukkan faktor kalibrasi dari sertifikat alat:',
+              style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+              ),
+              child: TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,8}')),
+                ],
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0F172A),
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Contoh: 1.00125156',
+                  hintStyle: TextStyle(color: Color(0xFFCBD5E1), fontSize: 13),
+                  prefixIcon: Icon(Icons.calculate_rounded, 
+                      color: Color(0xFF94A3B8), size: 20),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Contoh Perhitungan:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900],
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Nilai standar = 80\n'
+                    'Nilai alat = 79.9\n'
+                    'Faktor = 80 ÷ 79.9 = 1.00125156',
+                    style: TextStyle(
+                      color: Colors.blue[800],
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              if (value != null && value > 0 && value <= 2.0) {
+                setState(() => _calibrationFactor = value);
+                Navigator.pop(ctx);
+                _showSuccessSnackBar(
+                  'Kalibrasi diterapkan: ${value.toStringAsFixed(8)}'
+                );
+              } else {
+                _showErrorSnackBar('Nilai tidak valid (0 < x ≤ 2.0)');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3B82F6),
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            child: const Text('Terapkan',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                )),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showReportDialog() {
@@ -2339,7 +2298,77 @@ class _HammerTestScreenState extends State<HammerTestScreen>
     );
   }
 
-  void _showHistoryDialog() {
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle_rounded,
+                  color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+        elevation: 4,
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.error_rounded,
+                  color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: const EdgeInsets.all(16),
+        elevation: 4,
+      ),
+    );
+  }
+void _showHistoryDialog() {
     final history = _service.testHistory;
     final stats = _service.getOverallStatistics();
 
@@ -2415,7 +2444,7 @@ class _HammerTestScreenState extends State<HammerTestScreen>
                           ),
                         );
 
-                        if (confirm == true) {
+                        if (confirm == true && mounted) {
                           await _service.clearAllHistory();
                           setState(() {});
                           Navigator.pop(context);
@@ -2601,12 +2630,14 @@ class _HammerTestScreenState extends State<HammerTestScreen>
                                     ),
                                   );
 
-                                  if (confirm == true) {
+                                  if (confirm == true && mounted) {
                                     await _service
                                         .deleteTestResult(test.testId);
                                     setState(() {});
-                                    Navigator.pop(context);
-                                    _showHistoryDialog();
+                                    if (mounted) {
+                                      Navigator.pop(context);
+                                      _showHistoryDialog();
+                                    }
                                   }
                                 },
                               ),
@@ -2621,75 +2652,5 @@ class _HammerTestScreenState extends State<HammerTestScreen>
       ),
     );
   }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check_circle_rounded,
-                  color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-        elevation: 4,
-      ),
-    );
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.error_rounded,
-                  color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFFEF4444),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: const EdgeInsets.all(16),
-        elevation: 4,
-      ),
-    );
-  }
 }
+
